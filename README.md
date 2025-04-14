@@ -1,32 +1,51 @@
-# Speech-to-Text Transcription Tools
+# Speech-to-Text Transcription System
 
-This project provides multiple speech-to-text (STT) transcription tools that can be used independently or compared side-by-side.
+A comprehensive speech-to-text transcription system with multiple engines and a web interface.
 
 ## Features
 
-- **Multiple Transcription Engines**:
-  - **Bhashini**: Indian government's multilingual ASR platform
-  - **SPRING Lab**: IIT Madras speech recognition API
-  - **Whisper**: OpenAI's open-source speech recognition model (offline capability)
-  - **Transkriptor**: Unified interface to compare all engines
+### Multiple Transcription Engines
+- **Whisper**: OpenAI's open-source speech recognition model
+  - Multiple model sizes (tiny, base, small, medium, large)
+  - Advanced language detection and auto-correction
+  - Offline capability
+- **SPRING Lab**: IIT Madras speech recognition API
+  - Real-time transcription
+  - Indian language support
+  - WebVTT caption generation
+- **Bhashini**: Indian government's multilingual ASR platform
+  - Support for Indian languages
+  - API-based transcription
 
-- **Input Sources**:
-  - Audio files (.mp3, .wav, etc.)
-  - Video files (.mp4, etc.)
-  - YouTube videos (via URL)
-  - Live microphone recording
+### Input Sources
+- Audio files (.mp3, .wav, .ogg, .flac, .m4a)
+- Video files (.mp4, .avi, .mov, .mkv)
+- YouTube videos (including Shorts)
+- Live microphone recording
 
-- **Output Formats**:
-  - Console output
-  - Text files
-  - JSON format
-  - WebVTT captions (Bhashini and SPRING Lab)
+### Web Interface
+- User-friendly interface with Bootstrap UI
+- Real-time transcription progress tracking
+- Multiple engine comparison
+- Features:
+  - Copy results to clipboard
+  - Download transcriptions
+  - Live recording with start/stop controls
+  - Progress bar and status updates
+  - Language selection
+  - Model selection for Whisper
+
+### Output Formats
+- Plain text transcription
+- JSON format with metadata
+- WebVTT captions (SPRING Lab)
+- Detailed language detection information
 
 ## Installation
 
 1. Clone this repository
 2. Install dependencies:
-   ```
+   ```bash
    pip install -r requirements.txt
    ```
 3. Install FFmpeg (required for audio processing):
@@ -36,71 +55,74 @@ This project provides multiple speech-to-text (STT) transcription tools that can
 
 ## Usage
 
-### Bhashini ASR
+### Web Interface
+1. Start the server:
+   ```bash
+   python app.py
+   ```
+2. Open http://127.0.0.1:5000 in your browser
+3. Select transcription engine, input source, and options
+4. Start transcription and monitor progress
 
+### Command Line Usage
+
+#### Whisper
+```bash
+python whisper.py --model [tiny|base|small|medium|large] --source [youtube|video|audio|live] --input [FILE_PATH/URL] --language [LANGUAGE_CODE] --output [OUTPUT_FILE]
+```
+
+Features:
+- Automatic language detection
+- Language correction for commonly confused languages
+- Special handling for Hindi/English confusion
+- CUDA support for GPU acceleration
+
+#### SPRING Lab
+```bash
+python spring_lab.py --source [youtube|video|audio|live] --input [FILE_PATH/URL] --language [LANGUAGE_CODE] --vtt
+```
+
+Supported languages:
+- Bengali, English, Gujarati, Hindi, Kannada
+- Malayalam, Marathi, Odia, Punjabi
+- Sanskrit, Tamil, Telugu, Urdu
+
+#### Bhashini
 ```bash
 python bhashini.py --source [youtube|video|audio|live] --input [FILE_PATH/URL] --language [LANGUAGE_CODE] --api-key [YOUR_API_KEY]
 ```
 
 Required:
-- Get an API key from [Bhashini Developer Portal](https://bhashini.gov.in/developer)
-- Set it as `--api-key` parameter or as `BHASHINI_API_KEY` environment variable
+- Get API key from [Bhashini Developer Portal](https://bhashini.gov.in/developer)
+- Set as `--api-key` parameter or `BHASHINI_API_KEY` environment variable
 
-### SPRING Lab ASR
+### Language Support
 
-```bash
-python spring_lab.py --source [youtube|video|audio|live] --input [FILE_PATH/URL] --language [LANGUAGE_CODE] --vtt
-```
+#### Whisper
+- Supports 96+ languages with automatic detection
+- Advanced language correction for:
+  - Hindi transcribed as English
+  - Sanskrit/Urdu confusion
+  - Various Indian languages
+  - Persian/Arabic differentiation
 
-Note: SPRING Lab API is free to use but may have usage limitations.
+#### SPRING Lab
+- Specialized in Indian languages
+- Automatic language detection
+- High accuracy for regional languages
 
-### Whisper
+#### Bhashini
+- Focused on Indian languages
+- Check [Bhashini's documentation](https://bhashini.gov.in/services) for current language list
 
-```bash
-python whisper.py --model [tiny|base|small|medium|large] --source [youtube|video|audio|live] --input [FILE_PATH/URL] --language [LANGUAGE_CODE] --output [OUTPUT_FILE]
-```
-
-Note: Whisper works offline but requires downloading models. Larger models provide better accuracy but require more resources.
-
-### Transkriptor (Unified Interface)
-
-```bash
-python transkriptor.py --engine [bhashini|spring_lab|whisper|all] --source [youtube|video|audio|live] --input [FILE_PATH/URL] --language [LANGUAGE_CODE] --api-key [BHASHINI_API_KEY] --model [WHISPER_MODEL] --output [OUTPUT_FILE]
-```
-
-The "all" engine option will compare results from all available engines.
-
-## Examples
-
-### Transcribe a YouTube video with Whisper
-
-```bash
-python whisper.py --source youtube --input "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --output transcript.txt
-```
-
-### Live transcription with all engines
-
-```bash
-python transkriptor.py --engine all --source live --language hindi --live-duration 60
-```
-
-### Transcribe a video file with Bhashini
-
-```bash
-python bhashini.py --source video --input my_video.mp4 --language hi --api-key YOUR_API_KEY
-```
-
-## Supported Languages
-
-### Bhashini
-Various Indian languages including Hindi, Tamil, Telugu, etc. (Check [Bhashini's documentation](https://bhashini.gov.in/services))
-
-### SPRING Lab
-Bengali, English, Gujarati, Hindi, Kannada, Malayalam, Marathi, Odia, Punjabi, Sanskrit, Tamil, Telugu, Urdu
-
-### Whisper
-Supports 96+ languages with automatic language detection
+## Error Handling
+- Automatic retry for YouTube downloads
+- Multiple download methods (yt-dlp, pytube, direct)
+- Detailed logging in logs/app.log
+- User-friendly error messages in web interface
 
 ## License
+This project is open-source under the MIT License.
 
-This project is open-source under the MIT License. 
+## Contributing
+Contributions are welcome! Please feel free to submit pull requests. 
