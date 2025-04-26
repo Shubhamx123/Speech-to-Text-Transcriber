@@ -4,14 +4,62 @@ import subprocess
 import logging
 import uuid
 import re
-from pydub import AudioSegment
-import yt_dlp
-import pytube
+import sys
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, 
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger('utils')
+
+# Check if FFmpeg is available
+FFMPEG_AVAILABLE = True
+try:
+    # Test if FFmpeg is installed
+    subprocess.run(['ffmpeg', '-version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+except (FileNotFoundError, subprocess.SubprocessError):
+    logger.error("FFmpeg is not available. Audio/video conversion features will be limited.")
+    FFMPEG_AVAILABLE = False
+
+# Try to import external libraries with fallbacks
+try:
+    from pydub import AudioSegment
+except ImportError:
+    logger.error("Failed to import pydub. Audio processing will be limited.")
+    # Create dummy AudioSegment to avoid errors
+    class DummyAudioSegment:
+        @staticmethod
+        def from_file(*args, **kwargs):
+            return DummyAudioSegment()
+        def export(self, *args, **kwargs):
+            return None
+        frame_rate = 0
+    AudioSegment = DummyAudioSegment
+
+try:
+    import yt_dlp
+except ImportError:
+    logger.error("Failed to import yt_dlp. YouTube download will use fallback methods.")
+    yt_dlp = None
+
+try:
+    import pytube
+except ImportError:
+    logger.error("Failed to import pytube. YouTube features will be limited.")
+    # Create dummy pytube to avoid errors
+    class DummyYouTube:
+        def __init__(self, *args, **kwargs):
+            pass
+        streams = None
+    class DummyChannel:
+        def __init__(self, *args, **kwargs):
+            self.channel_name = "Unknown"
+            self.channel_id = "unknown"
+            self.channel_url = ""
+            self.video_urls = []
+    class DummyPytube:
+        YouTube = DummyYouTube
+        Channel = DummyChannel
+    pytube = DummyPytube
 
 def create_output_dir():
     """Create output directory if it doesn't exist."""
@@ -278,6 +326,11 @@ def convert_to_wav(input_path, sample_rate=16000):
         str: Path to the converted WAV file
     """
     try:
+        # If FFmpeg is not available, return the original path
+        if not FFMPEG_AVAILABLE:
+            logger.warning("FFmpeg not available, returning original audio path")
+            return input_path
+            
         # Get the file extension without the dot
         file_ext = os.path.splitext(input_path)[1][1:].lower()
         
@@ -313,10 +366,12 @@ def convert_to_wav(input_path, sample_rate=16000):
         
     except subprocess.CalledProcessError as e:
         logger.error(f"FFmpeg conversion failed: {e.stderr.decode() if e.stderr else str(e)}")
-        raise Exception(f"Failed to convert audio file: {e}")
+        # Return original path as fallback
+        return input_path
     except Exception as e:
         logger.error(f"Conversion error: {e}")
-        raise Exception(f"Failed to convert audio file: {e}")
+        # Return original path as fallback
+        return input_path
 
 def convert_to_mp3(input_path, output_path=None):
     """Convert audio file to MP3 format.

@@ -26,6 +26,21 @@ except (ImportError, AttributeError):
     logger.error("To enable Whisper, install it separately with: pip install openai-whisper")
     WHISPER_AVAILABLE = False
 
+# Check if SoundDevice is available
+SOUNDDEVICE_AVAILABLE = True
+try:
+    import sounddevice as sd
+    import numpy as np
+except (ImportError, AttributeError):
+    logger.error("Failed to import sounddevice package. Recording features will be disabled.")
+    SOUNDDEVICE_AVAILABLE = False
+    # Create dummy np object to avoid errors
+    class DummyNp:
+        float32 = None
+        int16 = None
+        zeros = lambda *args, **kwargs: None
+    np = DummyNp()
+
 # SpringLab API endpoint
 SPRING_LAB_API_URL = "https://asr.iitm.ac.in/internal/asr/decode"
 
@@ -749,6 +764,13 @@ def live_record_with_callback(callback, stop_event, max_duration=30, sample_rate
     """
     rec_logger = logging.getLogger('feature.recording.live')
     rec_logger.debug(f"Starting live recording with max_duration={max_duration}, sample_rate={sample_rate}")
+    
+    # Check if sounddevice is available
+    if not SOUNDDEVICE_AVAILABLE:
+        rec_logger.error("SoundDevice module is not available. Recording features disabled.")
+        callback(0)  # Call callback with 0 progress
+        stop_event.set()  # Signal to stop
+        return None
     
     # Create an array to store the recording
     max_frames = max_duration * sample_rate

@@ -8,24 +8,62 @@ import base64
 import uuid
 import sys
 import argparse
-import streamlit.components.v1 as components
 
-# Set up logging
-logging.basicConfig(level=logging.DEBUG, 
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    handlers=[
-                        logging.FileHandler("app_debug.log", mode='w'),  # More descriptive filename, overwrite mode
-                        logging.StreamHandler()
-                    ])
-# Set specific loggers for each feature
+# Set up basic logging first
+logging.basicConfig(level=logging.INFO, 
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger('streamlit_app')
+
+# Import UI components with try/except
+try:
+    import streamlit.components.v1 as components
+except ImportError as e:
+    logger.error(f"Failed to import streamlit components: {e}")
+    components = None
+
+# Set more specific loggers
 file_logger = logging.getLogger('feature.file_upload') 
 youtube_logger = logging.getLogger('feature.youtube')
 recording_logger = logging.getLogger('feature.recording')
 
-# Import our modules
-from transcriber import WhisperTranscriber, SpringLabASR, WHISPER_AVAILABLE, SPRING_LAB_LANGUAGES, live_record_with_callback
-from utils import download_youtube_audio, download_all_channel_videos, save_transcript, create_output_dir, get_channel_info
+# Try importing our modules with error handling
+try:
+    from transcriber import WhisperTranscriber, SpringLabASR, WHISPER_AVAILABLE, SPRING_LAB_LANGUAGES, live_record_with_callback
+    from utils import download_youtube_audio, download_all_channel_videos, save_transcript, create_output_dir, get_channel_info
+except ImportError as e:
+    st.error(f"Failed to import required modules: {e}")
+    logger.error(f"Module import error: {e}")
+    WHISPER_AVAILABLE = False
+    SPRING_LAB_LANGUAGES = ["english"]
+    
+    # Define placeholder functions to avoid errors
+    def live_record_with_callback(*args, **kwargs):
+        logger.error("live_record_with_callback not available")
+        return None
+        
+    # Create empty classes for fallback
+    class WhisperTranscriber:
+        def __init__(self, *args, **kwargs):
+            pass
+            
+    class SpringLabASR:
+        def __init__(self, *args, **kwargs):
+            pass
+            
+    def download_youtube_audio(*args, **kwargs):
+        return None
+        
+    def download_all_channel_videos(*args, **kwargs):
+        return []
+        
+    def save_transcript(*args, **kwargs):
+        return None
+        
+    def create_output_dir():
+        return "output"
+        
+    def get_channel_info(*args, **kwargs):
+        return {"title": "Error", "video_count": 0}
 
 # Create output directory
 output_dir = create_output_dir()
