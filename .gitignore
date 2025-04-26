@@ -1,0 +1,37 @@
+# Python virtual environment
+venv/
+env/
+ENV/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Log files
+*.log
+logs/
+
+# Output directory (user generated content)
+output/
+
+# Temporary files
+*.tmp
+temp/
+.DS_Store
+
+# Environment variables
+.env
+
+# IDE specific files
+.idea/
+.vscode/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Jupyter Notebooks
+.ipynb_checkpoints 

@@ -1,128 +1,66 @@
-# Speech-to-Text Transcription System
+# Speech-to-Text Transcriber
 
-A comprehensive speech-to-text transcription system with multiple engines and a web interface.
+A Streamlit application for speech-to-text transcription with multiple transcription engines and input options.
 
 ## Features
 
-### Multiple Transcription Engines
-- **Whisper**: OpenAI's open-source speech recognition model
-  - Multiple model sizes (tiny, base, small, medium, large)
-  - Advanced language detection and auto-correction
-  - Offline capability
-- **SPRING Lab**: IIT Madras speech recognition API
-  - Real-time transcription
-  - Indian language support
-  - WebVTT caption generation
-- **Bhashini**: Indian government's multilingual ASR platform
-  - Support for Indian languages
-  - API-based transcription
+- **Multiple Transcription Engines**: 
+  - OpenAI Whisper (local)
+  - SpringLab ASR (API-based)
 
-### Input Sources
-- Audio files (.mp3, .wav, .ogg, .flac, .m4a)
-- Video files (.mp4, .avi, .mov, .mkv)
-- YouTube videos (including Shorts)
-- Live microphone recording
+- **Multiple Input Methods**:
+  - File Upload (audio/video)
+  - YouTube Video URL
+  - YouTube Channel (batch processing)
+  - Live Microphone Recording
 
-### Web Interface
-- User-friendly interface with Bootstrap UI
-- Real-time transcription progress tracking
-- Multiple engine comparison
-- Features:
-  - Copy results to clipboard
-  - Download transcriptions
-  - Live recording with start/stop controls
-  - Progress bar and status updates
-  - Language selection
-  - Model selection for Whisper
+- **Supported Languages**:
+  - Whisper: 100+ languages with auto-detection
+  - SpringLab: Support for Indian languages (Hindi, Tamil, Telugu, etc.)
 
-### Output Formats
-- Plain text transcription
-- JSON format with metadata
-- WebVTT captions (SPRING Lab)
-- Detailed language detection information
+## Live Demo
 
-## Installation
+Try the app at [Streamlit Cloud](https://speech-to-text-transcriber.streamlit.app)
 
-1. Clone this repository
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Install FFmpeg (required for audio processing):
-   - **Windows**: Download from [ffmpeg.org](https://ffmpeg.org/download.html) and add to PATH
-   - **Mac**: `brew install ffmpeg`
-   - **Linux**: `sudo apt install ffmpeg`
+## How to Use
 
-## Usage
+1. Select a transcription engine in the sidebar
+2. Choose your input method (File, YouTube, or Recording)
+3. Configure options as needed
+4. Start transcription
+5. Download or save your transcription results
 
-### Web Interface
-1. Start the server:
-   ```bash
-   python app.py
-   ```
-2. Open http://127.0.0.1:5000 in your browser
-3. Select transcription engine, input source, and options
-4. Start transcription and monitor progress
+## Local Setup
 
-### Command Line Usage
-
-#### Whisper
 ```bash
-python whisper.py --model [tiny|base|small|medium|large] --source [youtube|video|audio|live] --input [FILE_PATH/URL] --language [LANGUAGE_CODE] --output [OUTPUT_FILE]
+# Clone the repository
+git clone https://github.com/username/Speech-to-Text-Transcriber.git
+cd Speech-to-Text-Transcriber
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the app
+streamlit run main.py
 ```
 
-Features:
-- Automatic language detection
-- Language correction for commonly confused languages
-- Special handling for Hindi/English confusion
-- CUDA support for GPU acceleration
+## Deploying to Streamlit Cloud
 
-#### SPRING Lab
-```bash
-python spring_lab.py --source [youtube|video|audio|live] --input [FILE_PATH/URL] --language [LANGUAGE_CODE] --vtt
-```
+1. Push this repository to GitHub
+2. Go to [Streamlit Cloud](https://share.streamlit.io)
+3. Sign in with GitHub
+4. Select this repository
+5. Set main file path to: `main.py`
+6. Click "Deploy"
 
-Supported languages:
-- Bengali, English, Gujarati, Hindi, Kannada
-- Malayalam, Marathi, Odia, Punjabi
-- Sanskrit, Tamil, Telugu, Urdu
+Your app will be available at a URL like `https://username-speech-to-text-transcriber.streamlit.app`
 
-#### Bhashini
-```bash
-python bhashini.py --source [youtube|video|audio|live] --input [FILE_PATH/URL] --language [LANGUAGE_CODE] --api-key [YOUR_API_KEY]
-```
+## Requirements
 
-Required:
-- Get API key from [Bhashini Developer Portal](https://bhashini.gov.in/developer)
-- Set as `--api-key` parameter or `BHASHINI_API_KEY` environment variable
-
-### Language Support
-
-#### Whisper
-- Supports 96+ languages with automatic detection
-- Advanced language correction for:
-  - Hindi transcribed as English
-  - Sanskrit/Urdu confusion
-  - Various Indian languages
-  - Persian/Arabic differentiation
-
-#### SPRING Lab
-- Specialized in Indian languages
-- Automatic language detection
-- High accuracy for regional languages
-
-#### Bhashini
-- Focused on Indian languages
-- Check [Bhashini's documentation](https://bhashini.gov.in/services) for current language list
-
-## Error Handling
-- Automatic retry for YouTube downloads
-- Multiple download methods (yt-dlp, pytube, direct)
-- Detailed logging in logs/app.log
-- User-friendly error messages in web interface
+- Python 3.8+
+- FFmpeg (for audio processing)
+- Internet connection (for YouTube and SpringLab features)
 
 ## License
-This project is open-source under the MIT License.
 
-## Contributing
-Contributions are welcome! Please feel free to submit pull requests. 
+MIT 
