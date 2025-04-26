@@ -228,6 +228,9 @@ with st.sidebar:
             index=1,  # Default to base
             help="Larger models are more accurate but slower and require more resources"
         )
+    elif not WHISPER_AVAILABLE and "spring_lab" in engine_options:
+        st.warning("OpenAI Whisper is not available in this environment. Using SpringLab ASR instead.")
+        st.info("To use Whisper locally, install it with: pip install openai-whisper")
     
     # Language selection
     language = ""

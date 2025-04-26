@@ -22,7 +22,8 @@ try:
     import whisper
     whisper.load_model  # Test if the function exists
 except (ImportError, AttributeError):
-    logger.error("Failed to import OpenAI Whisper package. Please install it with: pip install openai-whisper")
+    logger.error("Failed to import OpenAI Whisper package. Whisper transcription will be disabled.")
+    logger.error("To enable Whisper, install it separately with: pip install openai-whisper")
     WHISPER_AVAILABLE = False
 
 # SpringLab API endpoint
