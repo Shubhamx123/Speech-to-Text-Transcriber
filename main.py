@@ -1,23 +1,66 @@
-import streamlit as st
-import os
-import tempfile
-import time
-import threading
-import logging
-import base64
-import uuid
+#!/usr/bin/env python3
+"""
+Speech-to-Text Transcriber
+A Streamlit app for transcribing speech from various sources
+"""
+
+# First, set up minimal imports for debugging
 import sys
-import argparse
+import os
+import traceback
+
+# Print startup debug info to help diagnose issues
+print("Starting Speech-to-Text Transcriber app")
+print(f"Python version: {sys.version}")
+print(f"Current directory: {os.getcwd()}")
+print(f"Directory contents: {os.listdir('.')}")
+
+# Try importing streamlit first - most critical
+try:
+    import streamlit as st
+    print("Successfully imported streamlit")
+except Exception as e:
+    print(f"Error importing streamlit: {e}")
+    traceback.print_exc()
+    # Write to a file for debugging
+    with open("streamlit_error.log", "w") as f:
+        f.write(f"Error importing streamlit: {e}\n")
+        traceback.print_exc(file=f)
+    sys.exit(1)
+
+# Now attempt other basic imports
+try:
+    import tempfile
+    import time
+    import threading
+    import logging
+    import base64
+    import uuid
+    import argparse
+    print("Successfully imported standard libraries")
+except Exception as e:
+    print(f"Error importing standard libraries: {e}")
+    st.error(f"Error importing standard libraries: {e}")
+    traceback.print_exc()
+    sys.exit(1)
 
 # Set up basic logging first
-logging.basicConfig(level=logging.INFO, 
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger('streamlit_app')
+try:
+    logging.basicConfig(level=logging.INFO, 
+                        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logger = logging.getLogger('streamlit_app')
+    print("Successfully set up logging")
+except Exception as e:
+    print(f"Error setting up logging: {e}")
+    st.error(f"Error setting up logging: {e}")
+    traceback.print_exc()
 
 # Import UI components with try/except
 try:
     import streamlit.components.v1 as components
+    print("Successfully imported streamlit components")
 except ImportError as e:
+    print(f"Failed to import streamlit components: {e}")
     logger.error(f"Failed to import streamlit components: {e}")
     components = None
 
@@ -30,9 +73,13 @@ recording_logger = logging.getLogger('feature.recording')
 try:
     from transcriber import WhisperTranscriber, SpringLabASR, WHISPER_AVAILABLE, SPRING_LAB_LANGUAGES, live_record_with_callback
     from utils import download_youtube_audio, download_all_channel_videos, save_transcript, create_output_dir, get_channel_info
+    print("Successfully imported application modules")
+    MODULES_AVAILABLE = True
 except ImportError as e:
+    print(f"Failed to import required modules: {e}")
     st.error(f"Failed to import required modules: {e}")
     logger.error(f"Module import error: {e}")
+    MODULES_AVAILABLE = False
     WHISPER_AVAILABLE = False
     SPRING_LAB_LANGUAGES = ["english"]
     
@@ -66,15 +113,69 @@ except ImportError as e:
         return {"title": "Error", "video_count": 0}
 
 # Create output directory
-output_dir = create_output_dir()
+try:
+    output_dir = create_output_dir()
+    print(f"Created output directory: {output_dir}")
+except Exception as e:
+    print(f"Error creating output directory: {e}")
+    output_dir = "output"
+    os.makedirs(output_dir, exist_ok=True)
 
-# Configure Streamlit page
-st.set_page_config(
-    page_title="Speech-to-Text Transcriber",
-    page_icon="🎙️",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+# Streamlit app configuration with error handling
+try:
+    st.set_page_config(
+        page_title="Speech-to-Text Transcriber",
+        page_icon="🎙️",
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
+    print("Streamlit page configuration set")
+except Exception as e:
+    print(f"Error setting Streamlit page config: {e}")
+    traceback.print_exc()
+
+# Fallback minimal app if all modules fail
+if not MODULES_AVAILABLE:
+    st.title("🎙️ Speech-to-Text Transcriber")
+    st.error("⚠️ Error: Required modules could not be loaded")
+    st.warning("This application requires certain modules that couldn't be loaded in this environment.")
+    
+    st.info("""
+    ### Features that should work:
+    - File Upload (audio/video)
+    - YouTube URL transcription
+    
+    ### Features that might not work:
+    - Whisper transcription
+    - Live microphone recording
+    """)
+    
+    st.markdown("""
+    ### Troubleshooting
+    - Try running the app locally with: `streamlit run main.py`
+    - Check logs for specific error messages
+    - Ensure all dependencies are installed: `pip install -r requirements.txt`
+    """)
+    
+    # Add a simple file upload as fallback
+    st.header("📁 File Upload")
+    uploaded_file = st.file_uploader(
+        "Choose an audio or video file", 
+        type=["mp3", "wav", "ogg", "flac", "mp4", "avi", "mov", "mkv", "m4a"]
+    )
+    
+    if uploaded_file is not None:
+        st.success(f"File uploaded: {uploaded_file.name}")
+        st.info("Transcription is not available in limited mode.")
+        
+    # Display version info
+    st.sidebar.header("System Information")
+    st.sidebar.info(f"Python version: {sys.version}")
+    st.sidebar.info(f"Streamlit version: {st.__version__}")
+    st.sidebar.info(f"Running in limited mode due to module import errors")
+    
+    # Stop here and don't try to run the full app
+    st.stop()
 
 # Check if argument is provided for specifying port
 if len(sys.argv) > 1:
