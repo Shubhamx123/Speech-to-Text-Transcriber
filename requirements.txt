@@ -1,0 +1,12 @@
+flask>=2.0.0
+openai-whisper>=20231106
+pydub>=0.25.1
+yt-dlp>=2024.4.9
+sounddevice>=0.4.6
+numpy>=1.24.0
+ffmpeg-python>=0.2.0
+requests>=2.31.0
+scipy>=1.10.0
+celery>=5.3.0
+# redis>=4.5.0  # Not needed when using filesystem broker 
+cryptography>=42.0.0  # For adhoc SSL support 

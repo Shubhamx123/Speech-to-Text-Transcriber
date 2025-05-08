@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROBUST SPEECH TO TEXT TRANSCRIBING MACHINE</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-top: 0;
+            border-radius: 0 0 5px 5px;
+        }
+        .recording-status {
+            color: #ff4b4b;
+            font-weight: bold;
+            margin: 10px 0;
+            min-height: 24px;
+        }
+        .audio-controls button {
+            margin-right: 10px;
+        }
+        .result-card {
+            margin-top: 20px;
+            display: none;
+        }
+        .settings-panel {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        #audioPlayer {
+            width: 100%;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="display-5">
+                <i class="fas fa-robot text-primary"></i> 
+                ROBUST SPEECH TO TEXT TRANSCRIBING MACHINE
+            </h1>
+            <span class="badge bg-info">Port 8080</span>
+        </header>
+
+        <!-- Settings Panel -->
+        <div class="settings-panel">
+            <h5><i class="fas fa-cog"></i> Settings</h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label for="engineSelect">Transcription Engine:</label>
+                        <select class="form-select" id="engineSelect">
+                            <option value="Whisper (Local)">Whisper (Local)</option>
+                            <option value="SpringLab API">SpringLab API (Best for Indian languages)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group mb-3" id="modelSizeGroup">
+                        <label for="modelSizeSelect">Whisper Model Size:</label>
+                        <select class="form-select" id="modelSizeSelect">
+                            <option value="small">Small (Fast)</option>
+                            <option value="medium">Medium (Better)</option>
+                            <option value="large">Large (Best)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group mb-3" id="languageGroup">
+                        <label for="languageSelect">Language:</label>
+                        <select class="form-select" id="languageSelect">
+                            <option value="english">English</option>
+                            <option value="hindi">Hindi</option>
+                            <option value="tamil">Tamil</option>
+                            <option value="bengali">Bengali</option>
+                            <option value="telugu">Telugu</option>
+                            <option value="marathi">Marathi</option>
+                            <option value="gujarati">Gujarati</option>
+                            <option value="kannada">Kannada</option>
+                            <option value="malayalam">Malayalam</option>
+                            <option value="punjabi">Punjabi</option>
+                            <option value="odia">Odia</option>
+                            <option value="urdu">Urdu</option>
+                            <option value="sanskrit">Sanskrit</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="record-tab" data-bs-toggle="tab" 
+                    data-bs-target="#record" type="button" role="tab">
+                    <i class="fas fa-microphone"></i> Live Recording
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="upload-tab" data-bs-toggle="tab" 
+                    data-bs-target="#upload" type="button" role="tab">
+                    <i class="fas fa-upload"></i> Upload File
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="youtube-tab" data-bs-toggle="tab" 
+                    data-bs-target="#youtube" type="button" role="tab">
+                    <i class="fab fa-youtube"></i> YouTube
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="myTabContent">
+            <!-- Recording Tab -->
+            <div class="tab-pane fade show active" id="record" role="tabpanel">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Recording directly from your browser. 
+                    Click 'Start Recording' to begin. Transcription will start automatically after stopping.
+                </div>
+
+                <div class="text-center mb-4">
+                    <div class="recording-status" id="recordingStatus"></div>
+                    <div class="audio-controls">
+                        <button class="btn btn-danger" id="recordButton">
+                            <i class="fas fa-microphone"></i> Start Recording
+                        </button>
+                        <button class="btn btn-primary" id="stopButton" disabled>
+                            <i class="fas fa-stop"></i> Stop Recording
+                        </button>
+                        <button class="btn btn-secondary" id="resetButton" disabled>
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                    </div>
+                    <audio id="audioPlayer" controls style="display:none;"></audio>
+                </div>
+
+                <div class="loading-spinner" id="recordingSpinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Transcribing audio... Please wait.</p>
+                </div>
+
+                <div class="card result-card" id="recordingResultCard">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Transcription Result</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="recordingResult"></div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="#" class="btn btn-primary" id="recordingDownloadBtn">
+                            <i class="fas fa-download"></i> Download Transcription
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Tab -->
+            <div class="tab-pane fade" id="upload" role="tabpanel">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Upload an audio or video file to transcribe its content.
+                </div>
+
+                <div class="mb-4">
+                    <label for="fileUpload" class="form-label">Choose a file</label>
+                    <input class="form-control" type="file" id="fileUpload" 
+                        accept="audio/*,video/*,.mp3,.wav,.ogg,.flac,.mp4,.avi,.mov,.mkv">
+                    <div class="form-text">Supported formats: MP3, WAV, OGG, FLAC, MP4, AVI, MOV, MKV</div>
+                </div>
+
+                <button class="btn btn-primary" id="uploadButton">
+                    <i class="fas fa-file-upload"></i> Upload and Transcribe
+                </button>
+
+                <div class="loading-spinner" id="uploadSpinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Transcribing file... Please wait.</p>
+                </div>
+
+                <div class="card result-card" id="uploadResultCard">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Transcription Result</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="uploadResult"></div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="#" class="btn btn-primary" id="uploadDownloadBtn">
+                            <i class="fas fa-download"></i> Download Transcription
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- YouTube Tab -->
+            <div class="tab-pane fade" id="youtube" role="tabpanel">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Enter a YouTube video URL or channel ID to transcribe its content.
+                </div>
+
+                <div class="mb-3">
+                    <label for="youtubeUrl" class="form-label">YouTube Video URL</label>
+                    <input type="text" class="form-control" id="youtubeUrl" 
+                        placeholder="https://www.youtube.com/watch?v=...">
+                </div>
+
+                <div class="mb-3">
+                    <label for="channelId" class="form-label">OR YouTube Channel ID</label>
+                    <input type="text" class="form-control" id="channelId" 
+                        placeholder="UCxxxxxxxx">
+                </div>
+
+                <div class="mb-3" id="maxVideosGroup">
+                    <label for="maxVideos" class="form-label">Max videos to transcribe (if channel ID is given)</label>
+                    <input type="number" class="form-control" id="maxVideos" min="1" value="5">
+                </div>
+
+                <button class="btn btn-primary" id="youtubeButton">
+                    <i class="fab fa-youtube"></i> Start Transcription
+                </button>
+
+                <div class="loading-spinner" id="youtubeSpinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Downloading and transcribing... Please wait.</p>
+                </div>
+
+                <div id="youtubeResults"></div>
+            </div>
+        </div>
+
+        <!-- Debug Panel (Collapsible) -->
+        <div class="accordion mt-4" id="debugAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="debugHeading">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                        data-bs-target="#debugCollapse" aria-expanded="false" aria-controls="debugCollapse">
+                        <i class="fas fa-bug"></i> Debug Information
+                    </button>
+                </h2>
+                <div id="debugCollapse" class="accordion-collapse collapse" aria-labelledby="debugHeading">
+                    <div class="accordion-body" id="debugOutput">
+                        <div class="alert alert-secondary">
+                            Debug information will appear here during transcription.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/main.js"></script>
+</body>
+</html> 
